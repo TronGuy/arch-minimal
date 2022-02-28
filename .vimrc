@@ -9,4 +9,4 @@ set title
 set mouse=a
 set tabstop=4
 syntax enable
-colorscheme monokai 
+colorscheme desert 
