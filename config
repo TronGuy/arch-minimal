@@ -40,7 +40,10 @@ exec --no-startup-id nitrogen --restore
 exec --no-startup-id volumeicon
 
 #thunar
-exec --no-startup-id thunar --daemon
+#exec --no-startup-id thunar --daemon
+
+#dunst
+#exec --no-statup-id dunst
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
@@ -50,7 +53,7 @@ exec --no-startup-id nm-applet
 exec --no-startup-id lxqt-policykit-agent
 
 #THUNAR
-bindsym $mod2+t exec thunar
+bindsym $mod2+t exec nemo
 
 #calendario
 bindsym $mod+c	exec gsimplecal
@@ -61,8 +64,17 @@ bindsym $mod2+y exec firefox www.youtube.com
 #Firefox
 bindsym $mod2+p exec firefox --private-window
 
+
+#hide
+bindsym $mod+x [class="^.*"] move scratchpad
+
+#show
+bindsym $mod2+x [class="^.*"] scratchpad show floating disable
+
 #I3LOCK
-bindsym $mod2+l exec i3lock
+bindsym $mod2+l exec --no-startup-id i3lock --image=/home/samflynn/Imagens/wallpapers/1638933497521.png
+
+#bindsym $mod2+l exec --no-startup-id i3lock
 
 #screenshot
 bindsym $mod2+s exec xfce4-screenshooter
@@ -93,7 +105,8 @@ bindsym $mod+q kill
 bindsym $mod2+F4 kill
 
 #cycle
-bindsym $mod2+Tab focus next
+bindsym $mod2+Tab focus right
+bindsym $mod2+Shift+Tab focus left
 
 # start dmenu (a program launcher)
 #bindsym $mod+d exec --no-startup-id dmenu_run
@@ -240,6 +253,8 @@ bar {
 }
 
 for_window [class="^.*"] border pixel 6
+for_window [instance="i3-scratchpad*"] border pixel 6
+for_window [instance="dropdown"] tabbed enable
 gaps inner 6
 gaps outer 6
 
