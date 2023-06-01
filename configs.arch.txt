@@ -1,0 +1,662 @@
+#!/bin/bash
+
+#######################################################################
+#
+# wget tinyurl.com/file | tr -d "\r" < file > file .sh && rm file
+#
+#######################################################################
+#
+# loadkeys br-abnt2
+# timedatectl set-timezone America/Sao_Paulo
+# timedatectl set-ntp true
+#
+#######################################################################
+#
+# dd if=/dev/zero of=/dev/sda bs=1M status=progress count=128
+# cfdisk /dev/sda | 200m=efi, 2g=swap, max=btrfs
+#
+#######################################################################
+#
+# dd if=/dev/zero of=/dev/sda[1/2/3] bs=1M status=progress count=128
+#
+#######################################################################
+#
+# mkfs.btrfs /dev/sda3
+# mkfs.fat -F32 /dev/sda1
+# mkswap /dev/sda2
+#
+#######################################################################
+#
+# mount -o noatime,autodefrag,compress=zstd:2,commit=120 /dev/sda3 /mnt
+# mount -m /dev/sda1 /mnt/boot
+# swapon /dev/sda2
+#
+#######################################################################
+#
+# nano /etc/pacman.conf
+# ParallelDownloads = 10
+# [multilib]
+# Include = /etc/pacman.d/mirrorlist
+#
+#######################################################################
+#
+# pacstrap /mnt base linux linux-firmware wget nano
+#
+#######################################################################
+#
+# genfstab -U /mnt >> /mnt/etc/fstab
+# arch-chroot /mnt
+#
+#######################################################################
+#
+# nano /etc/resolv.conf
+# nameserver 8.8.8.8
+# nameserver 2001:4860:4860::8888
+# chattr +i /etc/resolv.conf
+#
+#######################################################################
+#
+# nano /etc/lightdm/lightdm.conf
+# autologin-user=user
+# autologin-user-timeout=0
+#
+#######################################################################
+#
+# htop -d4 > f2 > meters > column 2
+# tas, loa, upt, dis, net [bar] > f10 > f10
+#
+#######################################################################
+#
+# lxappearance > default font = noto sans 10
+# lxappearance > widget = clearlooks
+# lxappearance > icon theme = mate
+# lxappearance > other > show images on buttons = uncheck
+#
+#######################################################################
+
+ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+hwclock --systohc
+
+sed -e "/en_US.UTF-8/s/^#*//g" -i /etc/locale.gen && locale-gen
+echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+echo "arch" >> /etc/hostname
+
+pacman -S --noconfirm           \
+        xorg-server             \
+        xf86-video-intel        \
+        libva-intel-driver      \
+        intel-media-driver      \
+        vulkan-intel            \
+        intel-ucode             \
+        bash-completion         \
+        openbox                 \
+        lxappearance            \
+        alacritty               \
+        dunst                   \
+        libnotify               \
+        polkit-gnome            \
+        gtk-engines             \
+        mate-icon-theme         \
+        pipewire-pulse          \
+        wireplumber             \
+        pavucontrol             \
+        brightnessctl           \
+        lightdm-gtk-greeter     \
+        nnn                     \
+        gvfs                    \
+        fuse2                   \
+        sudo                    \
+        rsync                   \
+        scrot                   \
+        arandr                  \
+        p7zip                   \
+        unrar                   \
+        usbutils                \
+        dmidecode               \
+        upower                  \
+        noto-fonts              \
+        noto-fonts-emoji        \
+        noto-fonts-cjk          \
+        otf-hermit              \
+        chromium                \
+        networkmanager          \
+        bluez                   \
+        bluez-utils             \
+        wireless-regdb          \
+        modemmanager            \
+        usb_modeswitch          \
+        numlockx                \
+        reflector               \
+        htop                    \
+        fwupd                   \
+        firewalld
+
+useradd -m user
+echo "user:user" | chpasswd
+echo "user ALL=(ALL:ALL) ALL" >> /etc/sudoers.d/user
+usermod -aG wheel user
+
+groupadd -r autologin
+gpasswd -a user autologin
+
+bootctl install
+cat << EOF >> /boot/loader/entries/arch.conf
+title arch
+linux /vmlinuz-linux
+initrd /intel-ucode.img
+initrd /initramfs-linux.img
+options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/sda3) rw zswap.compressor=zstd zswap.max_pool_percent=50
+EOF
+
+systemctl enable NetworkManager.service
+systemctl enable ModemManager.service
+systemctl enable bluetooth.service
+systemctl enable lightdm.service
+systemctl enable firewalld.service
+systemctl enable upower.service
+systemctl enable reflector.timer
+systemctl enable fstrim.timer
+systemctl enable systemd-boot-update.service
+
+cat << EOF >> /etc/sysctl.d/99-sysctl.conf
+vm.swappiness = 5
+vm.vfs_cache_pressure = 50
+vm.dirty_ratio = 50
+vm.dirty_background_ratio = 5
+EOF
+
+cat << EOF >> /etc/nanorc
+set autoindent
+set linenumbers
+set nohelp
+set softwrap
+set emptyline
+set constantshow
+set tabstospaces
+include /usr/share/nano/*.nanorc
+EOF
+
+cp /etc/skel/.bash_profile /root/
+cp /etc/skel/.bashrc /root/
+sed -e 's/^\([^#].*\)/#\1/g' -i /root/.bashrc
+cat << EOF >> /root/.bashrc
+alias ls="ls --color"
+PS1="\[\e[33m\]#\[\e[m\] "
+EOF
+
+sed -e 's/^\([^#].*\)/#\1/g' -i /home/user/.bashrc
+cat << EOF >> /home/user/.bashrc
+alias ls="ls --color"
+PS1="# "
+EOF
+
+mkdir /home/user/.screenlayout/
+cat << EOF >> /home/user/.screenlayout/default.sh
+#!/bin/sh
+xrandr --output eDP1 --primary --mode 1366x768 --pos 0x768 --rotate normal --output HDMI1 --mode 1360x768 --pos 0x0 --rotate normal --output VIRTUAL1 --off
+EOF
+chmod +x /home/user/.screenlayout/default.sh
+chown -R user:user /home/user/.screenlayout/
+
+mkdir -p /home/user/.config/openbox
+cat << EOF >> /home/user/.config/openbox/menu.xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<openbox_menu>
+
+<menu id="root-menu" label="Openbox 3">
+<item label="Chromium">
+        <action name="Execute"><execute>chromium</execute></action>
+</item>
+<item label="Alacritty">
+        <action name="Execute"><execute>alacritty -t Alacritty</execute></action>
+</item>
+<item label="Alacritty (n³)">
+        <action name="Execute"><execute>alacritty -t "Alacritty (n³)" -e nnn -C -d</execute></action>
+</item>
+<separator/>
+<item label="Restart (Openbox)">
+        <action name="Restart"/>
+</item>
+<separator/>
+<item label="Reboot">
+        <action name="Execute"><execute>systemctl reboot</execute></action>
+</item>
+<item label="Poweroff">
+        <action name="Execute"><execute>systemctl poweroff</execute></action>
+</item>
+</menu>
+
+</openbox_menu>
+EOF
+
+cat << EOF >> /home/user/.config/openbox/rc.xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<openbox_config>
+
+<resistance>
+        <strength>10</strength>
+        <screen_edge_strength>20</screen_edge_strength>
+</resistance>
+<focus>
+        <focusNew>yes</focusNew>
+        <followMouse>no</followMouse>
+        <focusLast>yes</focusLast>
+        <underMouse>no</underMouse>
+        <focusDelay>200</focusDelay>
+        <raiseOnFocus>no</raiseOnFocus>
+</focus>
+<placement>
+        <policy>Smart</policy>
+        <center>yes</center>
+        <monitor>Mouse</monitor>
+        <primaryMonitor>1</primaryMonitor>
+</placement>
+<theme>
+        <name>Onyx</name>
+        <titleLayout>LIMC</titleLayout>
+        <keepBorder>yes</keepBorder>
+        <animateIconify>no</animateIconify>
+        <font place="ActiveWindow">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Bold</weight>
+                <slant>Normal</slant>
+        </font>
+        <font place="InactiveWindow">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Bold</weight>
+                <slant>Normal</slant>
+        </font>
+        <font place="MenuHeader">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Normal</weight>
+                <slant>Normal</slant>
+        </font>
+        <font place="MenuItem">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Normal</weight>
+                <slant>Normal</slant>
+        </font>
+        <font place="ActiveOnScreenDisplay">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Bold</weight>
+                <slant>Normal</slant>
+        </font>
+        <font place="InactiveOnScreenDisplay">
+                <name>Noto Sans</name>
+                <size>10</size>
+                <weight>Bold</weight>
+                <slant>Normal</slant>
+        </font>
+</theme>
+<desktops>
+        <number>1</number>
+        <firstdesk>1</firstdesk>
+        <names></names>
+        <popupTime>875</popupTime>
+</desktops>
+<resize>
+        <drawContents>yes</drawContents>
+        <popupShow>Nonpixel</popupShow>
+        <popupPosition>Center</popupPosition>
+        <popupFixedPosition>
+                <x>10</x>
+                <y>10</y>
+        </popupFixedPosition>
+</resize>
+<margins>
+        <top>0</top>
+        <bottom>0</bottom>
+        <left>0</left>
+        <right>0</right>
+</margins>
+<dock>
+        <position>TopLeft</position>
+        <floatingX>0</floatingX>
+        <floatingY>0</floatingY>
+        <noStrut>no</noStrut>
+        <stacking>Above</stacking>
+        <direction>Vertical</direction>
+        <autoHide>no</autoHide>
+        <hideDelay>300</hideDelay>
+        <showDelay>300</showDelay>
+        <moveButton>Middle</moveButton>
+</dock>
+<keyboard>
+        <keybind key="XF86AudioMute">
+                <action name="Execute"><command>pactl set-sink-mute @DEFAULT_SINK@ toggle</command></action>
+        </keybind>
+        <keybind key="XF86AudioLowerVolume">
+                <action name="Execute"><command>pactl set-sink-volume @DEFAULT_SINK@ -2%</command></action>
+        </keybind>
+        <keybind key="XF86AudioRaiseVolume">
+                <action name="Execute"><command>pactl set-sink-volume @DEFAULT_SINK@ +2%</command></action>
+        </keybind>
+        <keybind key="XF86MonBrightnessDown">
+                <action name="Execute"><command>brightnessctl s 2%-</command></action>
+        </keybind>
+        <keybind key="XF86MonBrightnessUp">
+                <action name="Execute"><command>brightnessctl s +2%</command></action>
+        </keybind>
+        <keybind key="Print">
+                <action name="Execute"><command>scrot -s -q 100 "%Y-%m-%d_%I%M%S.png"</command></action>
+        </keybind>
+        <keybind key="Super_L">
+                <action name="ShowMenu"><menu>root-menu</menu></action>
+        </keybind>
+        <keybind key="A-N">
+                <action name="Iconify"/>
+        </keybind>
+        <keybind key="A-M">
+                <action name="ToggleMaximize"/>
+        </keybind>
+        <keybind key="A-Q">
+                <action name="Close"/>
+        </keybind>
+        <keybind key="A-Left">
+                <action name="Unmaximize"/>
+                <action name="MaximizeVert"/>
+                <action name="MoveResizeTo"><width>50%</width></action>
+                <action name="MoveToEdge"><direction>west</direction></action>
+        </keybind>
+        <keybind key="A-Right">
+                <action name="Unmaximize"/>
+                <action name="MaximizeVert"/>
+                <action name="MoveResizeTo"><width>50%</width></action>
+                <action name="MoveToEdge"><direction>east</direction></action>
+        </keybind>
+        <keybind key="A-Tab">
+                <action name="NextWindow">
+                        <finalactions>
+                                <action name="Focus"/>
+                                <action name="Raise"/>
+                                <action name="Unshade"/>
+                        </finalactions>
+                </action>
+        </keybind>
+</keyboard>
+<mouse>
+        <dragThreshold>1</dragThreshold>
+        <doubleClickTime>500</doubleClickTime>
+        <screenEdgeWarpTime>400</screenEdgeWarpTime>
+        <screenEdgeWarpMouse>false</screenEdgeWarpMouse>
+        <context name="Titlebar">
+                <mousebind button="Left" action="Drag">
+                        <action name="Move"/>
+                </mousebind>
+                <mousebind button="Left" action="DoubleClick">
+                        <action name="ToggleMaximize"/>
+                </mousebind>
+        </context>
+        <context name="Titlebar Top Right Bottom Left TLCorner TRCorner BRCorner BLCorner">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                        <action name="Unshade"/>
+                </mousebind>
+        </context>
+        <context name="Top">
+                <mousebind button="Left" action="Drag">
+                        <action name="Resize">
+                                <edge>top</edge>
+                        </action>
+                </mousebind>
+        </context>
+        <context name="Left">
+                <mousebind button="Left" action="Drag">
+                        <action name="Resize">
+                                <edge>left</edge>
+                        </action>
+                </mousebind>
+        </context>
+        <context name="Right">
+                <mousebind button="Left" action="Drag">
+                        <action name="Resize">
+                                <edge>right</edge>
+                        </action>
+                </mousebind>
+        </context>
+        <context name="Bottom">
+                <mousebind button="Left" action="Drag">
+                        <action name="Resize">
+                                <edge>bottom</edge>
+                        </action>
+                </mousebind>
+        </context>
+        <context name="TRCorner BRCorner TLCorner BLCorner">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                        <action name="Unshade"/>
+                </mousebind>
+                <mousebind button="Left" action="Drag">
+                        <action name="Resize"/>
+                </mousebind>
+        </context>
+        <context name="Client">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                </mousebind>
+        </context>
+        <context name="Iconify">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                </mousebind>
+                <mousebind button="Left" action="Click">
+                        <action name="Iconify"/>
+                </mousebind>
+        </context>
+        <context name="Maximize">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                        <action name="Unshade"/>
+                </mousebind>
+                <mousebind button="Left" action="Click">
+                        <action name="ToggleMaximize"/>
+                </mousebind>
+        </context>
+        <context name="Close">
+                <mousebind button="Left" action="Press">
+                        <action name="Focus"/>
+                        <action name="Raise"/>
+                        <action name="Unshade"/>
+                </mousebind>
+                <mousebind button="Left" action="Click">
+                        <action name="Close"/>
+                </mousebind>
+        </context>
+        <context name="Root">
+                <mousebind button="Left" action="Press">
+                        <action name="ShowMenu">
+                                <menu>root-menu</menu>
+                        </action>
+                </mousebind>
+        </context>
+</mouse>
+<menu>
+        <file>menu.xml</file>
+        <hideDelay>200</hideDelay>
+        <middle>no</middle>
+        <submenuShowDelay>100</submenuShowDelay>
+        <submenuHideDelay>400</submenuHideDelay>
+        <showIcons>yes</showIcons>
+        <manageDesktops>yes</manageDesktops>
+</menu>
+<applications>
+        <application class="*">
+                <position force="no">
+                        <x>center</x>
+                        <y>center</y>
+                </position>
+        </application>
+</applications>
+
+</openbox_config>
+EOF
+
+cat << EOF >> /home/user/.config/openbox/autostart
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+setxkbmap -model abnt2 -layout br &
+~/.screenlayout/default.sh &
+brightnessctl s 140 &
+xset s off -dpms &
+numlockx on &
+EOF
+
+mkdir /home/user/.config/alacritty/
+cat << EOF >> /home/user/.config/alacritty/alacritty.yml
+window:
+  dimensions:
+    columns: 79
+    lines: 20
+
+  padding:
+    x: 4
+    y: 4
+
+draw_bold_text_with_bright_colors: true
+
+font:
+  normal:
+    family: Hermit
+    style: Medium
+
+  bold:
+    family: Hermit
+    style: Bold
+
+  italic:
+    family: Hermit
+    style: Italic
+
+  bold_italic:
+    family: Hermit
+    style: Bold Italic
+
+  size: 10
+
+colors:
+  primary:
+    background: "0x000000"
+    foreground: "0xffffff"
+  cursor:
+    text: "0xF81CE5"
+    cursor: "0xffffff"
+
+  normal:
+    black:   "0x000000"
+    red:     "0xfe0100"
+    green:   "0x33ff00"
+    yellow:  "0xfeff00"
+    blue:    "0x0066ff"
+    magenta: "0xcc00ff"
+    cyan:    "0x00ffff"
+    white:   "0xd0d0d0"
+
+  bright:
+    black:   "0x808080"
+    red:     "0xfe0100"
+    green:   "0x33ff00"
+    yellow:  "0xfeff00"
+    blue:    "0x0066ff"
+    magenta: "0xcc00ff"
+    cyan:    "0x00ffff"
+    white:   "0xFFFFFF"
+
+env:
+  WINIT_X11_SCALE_FACTOR: "1"
+EOF
+
+mkdir /home/user/.config/dunst/
+cat << EOF >> /home/user/.config/dunst/dunstrc
+[global]
+    monitor = 0
+    follow = mouse
+    width = 300
+    height = 300
+    origin = top-right
+    offset = 20x20
+    scale = 0
+    notification_limit = 20
+    progress_bar = true
+    progress_bar_height = 10
+    progress_bar_frame_width = 1
+    progress_bar_min_width = 150
+    progress_bar_max_width = 300
+    progress_bar_corner_radius = 0
+    icon_corner_radius = 0
+    indicate_hidden = yes
+    transparency = 0
+    separator_height = 2
+    padding = 8
+    horizontal_padding = 8
+    text_icon_padding = 0
+    frame_width = 3
+    frame_color = "#aaaaaa"
+    gap_size = 0
+    separator_color = frame
+    sort = yes
+    font = Noto Sans 10
+    line_height = 0
+    markup = full
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    show_age_threshold = 60
+    ellipsize = middle
+    ignore_newline = no
+    stack_duplicates = true
+    hide_duplicate_count = false
+    show_indicators = yes
+    enable_recursive_icon_lookup = true
+    icon_theme = Adwaita
+    icon_position = off
+    min_icon_size = 32
+    max_icon_size = 128
+    icon_path = /usr/share/icons/gnome/16x16/status/:/usr/share/icons/gnome/16x16/devices/
+    sticky_history = yes
+    history_length = 20
+    dmenu = /usr/bin/dmenu -p dunst:
+    browser = /usr/bin/xdg-open
+    always_run_script = true
+    title = Dunst
+    class = Dunst
+    corner_radius = 0
+    ignore_dbusclose = false
+    force_xwayland = false
+    force_xinerama = false
+    mouse_left_click = close_current
+    mouse_middle_click = do_action, close_current
+    mouse_right_click = close_all
+
+[experimental]
+    per_monitor_dpi = false
+
+[urgency_low]
+    background = "#222222"
+    foreground = "#888888"
+    timeout = 10
+
+[urgency_normal]
+    background = "#285577"
+    foreground = "#ffffff"
+    timeout = 10
+
+[urgency_critical]
+    background = "#900000"
+    foreground = "#ffffff"
+    frame_color = "#ff0000"
+    timeout = 0
+EOF
+
+chown -R user:user /home/user/.config/
+chmod +x /home/user/.config/openbox/autostart

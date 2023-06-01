@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+pactl get-sink-volume @DEFAULT_SINK@ | volnoti-show $(awk '{print $5}')
