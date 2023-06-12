@@ -1,0 +1,11 @@
+[Unit]
+Description=bateria
+
+[Service]
+Restart=always
+RestartSec=60
+ExecStart=check-battery
+
+[Install]
+WantedBy=multi-user.target
+
