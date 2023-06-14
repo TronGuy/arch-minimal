@@ -1,0 +1,11 @@
+Configuração do moura - Fifrefox
+
+1 - about:config
+
+2 - set ui.context_menus.after_mouseup to TRUE
+
+
+OR
+
+in firefox css
+#contentAreaContextMenu{ margin: 2px 0 0 2px }
