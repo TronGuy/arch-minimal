@@ -1,16 +1,13 @@
 ########### MOD KEYS #############
-
 #Win
 set $mod Mod4
 #Alt
 set $mod2 Mod1
-
 #################################### SETS ##########################
 set $polkit '/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1' 
 set $rofi_open '/home/$USER/.config/rofi/launchers/type-2/launcher.sh'
-set $wallpaper "/home/$USER/.fehbg"
 ############# FONT ###########
-font pango:Noto Sans Medium 10
+font pango:Noto Sans Medium 10	
 
 ############## ASSIGN TO WORKSPACE #####################
 assign [instance="calibre-gui"] number "4: LEITURA"
@@ -32,15 +29,13 @@ focus_follows_mouse yes
 
 ############## AUTOSTART ################
 exec --no-startup-id mpd --no-daemon
-exec --no-startup-id $wallpaper
 exec --no-startup-id indicator-keylock
 exec --no-startup-id unclutter 
 exec --no-startup-id volumeicon
 exec --no-startup-id nm-applet
 exec --no-startup-id $polkit
 exec --no-startup-id xcompmgr
-
-
+exec --no-startup-id dunst
 ############# KEYBINDS #################
 bindsym $mod2+t exec --no-startup-id nemo
 bindsym Ctrl+Shift+x --release exec --no-startup-id xkill
@@ -60,10 +55,10 @@ bindsym $mod2+Shift+p exec --no-startup-id mpc play
 
 ########### VOLUME KEYBINDS ###########
 set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status && volshow
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status && volshow
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status && ismuted
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status && volshow
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -175,7 +170,7 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 #### RELOAD CONFIG FILE ####
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
-bindsym $mod+Shift+e exec "i3-nagbar -t error -m 'Deseja sair do i3? ' -B 'Sim, sair' 'i3-msg exit'"
+bindsym $mod+Shift+e exec "i3-nagbar -t warning  -m 'Deseja sair do i3? ' -B 'Sim, sair' 'i3-msg exit'"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -236,8 +231,8 @@ for_window [class="Font-manager"] floating enable resize set 600 600
 for_window [instance="file_progress"] move workspace "10: Transferindo..."
 for_window [instance="firefox"] focus
 
-#gaps inner 6
-#gaps outer 6
+#gaps inner 2
+#gaps outer 2
 
 # class                 border  backgr. text    indicator
 #client.focused          #4c7899 #285577 #ffffff #4c7899
