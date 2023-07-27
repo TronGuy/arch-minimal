@@ -3,15 +3,11 @@
 set $mod Mod4
 #Alt
 set $mod2 Mod1
-#################################### SETS ##########################
-set $polkit '/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1' 
-set $rofi_open '/home/$USER/.config/rofi/launchers/type-2/launcher.sh'
+set $path1 "/dados/home/luiz/script-personal/inicio.sh"
 ############# FONT ###########
 font pango:Noto Sans Medium 10	
 
-############## ASSIGN TO WORKSPACE #####################
-assign [instance="calibre-gui"] number "4: LEITURA"
-assign [class="qBittorrent"] number "9: TORRENT"
+
 #assign [class="firefox"] number "1: FIREFOX" 
 
 # Start XDG autostart .desktop files using dex. See also
@@ -28,15 +24,18 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 focus_follows_mouse yes
 
 ############## AUTOSTART ################
-exec --no-startup-id mpd --no-daemon
-exec --no-startup-id indicator-keylock
-exec --no-startup-id unclutter 
-exec --no-startup-id volumeicon
+
+exec --no-startup-id nitrogen --restore
 exec --no-startup-id nm-applet
-exec --no-startup-id $polkit
+exec --no-startup-id lxpolkit
 exec --no-startup-id xcompmgr
 exec --no-startup-id dunst
+exec --no-startup-id $path1
+exec --no-startup-id teclado
+exec --no-startup-id volumeicon
+exec --no-startup-id unclutter
 ############# KEYBINDS #################
+
 bindsym $mod2+t exec --no-startup-id nemo
 bindsym Ctrl+Shift+x --release exec --no-startup-id xkill
 bindsym $mod+c	exec --no-startup-id gsimplecal
@@ -44,16 +43,16 @@ bindsym $mod2+y exec --no-startup-id firefox --new-window www.youtube.com
 bindsym $mod2+p exec --no-startup-id  firefox --private-window
 bindsym $mod+x [class="^.*"] move scratchpad
 bindsym $mod2+x [class="^.*"] scratchpad show floating disable
-bindsym $mod2+l exec --no-startup-id betterlockscreen -l
+bindsym $mod2+l exec --no-startup-id betterlockscreen -l dim
 bindsym $mod2+s exec --no-startup-id xfce4-screenshooter
-bindsym $mod2+f exec --no-startup-id firefox
-bindsym $mod+d exec --no-startup-id '$rofi_open'
+bindsym $mod2+f exec --no-startup-id firefox --new-window
+bindsym $mod+d exec --no-startup-id rofi -i -show drun -modi drun -show-icons -font "Monospace Bold 12"
 bindsym $mod+Return exec --no-startup-id xfce4-terminal
 bindsym $mod+BackSpace exec --no-startup-id xfce4-terminal
-bindsym $mod2+Ctrl+p exec --no-startup-id mpc pause
-bindsym $mod2+Shift+p exec --no-startup-id mpc play
+bindsym $mod2+Ctrl+t exec --no-startup-id firefox --new-tab teams.microsoft.com/
 
 ########### VOLUME KEYBINDS ###########
+
 set $refresh_i3status killall -SIGUSR1 i3status
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
@@ -62,6 +61,7 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
+
 # kill focused window
 bindsym $mod+q kill
 
@@ -71,11 +71,7 @@ bindsym $mod2+F4 kill
 #cycle
 bindsym $mod2+Tab focus right
 bindsym $mod2+Shift+Tab focus left
-# A more modern dmenu replacement is rofi:
-# bindcode $mod+40 exec "rofi -modi drun,run -show drun"
-# There also is i3-dmenu-desktop which only displays applications shipping a
-# .desktop file. It is a wrapper around dmenu, so you need that installed.
-# bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
+
 
 # change focus
 bindsym $mod+l focus up
@@ -121,25 +117,18 @@ bindsym $mod+space focus mode_toggle
 # focus the parent container
 bindsym $mod+a focus parent
 
-# focus the child container
-#bindsym $mod+d focus child
-
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
 set $ws1 "1: NAVEGAÇÃO"
 set $ws2 "2: CODE"
-set $ws3 "3: MÍDIA"
-set $ws4 "4: LEITURA"
-set $ws5 "5"
+set $ws3 "3: TEAMS"
+set $ws4 "4: SSH"
+set $ws5 "5: "
 set $ws6 "6"
 set $ws7 "7"
 set $ws8 "8"
-set $ws9 "9: TORRENT"
-set $ws10 "10"
-
-########################## BRIGHTNESS ###########################
-bindsym XF86MonBrightnessUp exec --no-startup-id xbacklight -inc 10
-bindsym XF86MonBrightnessDown exec --no-startup-id xbacklight -dec 10 
+set $ws9 "9:"
+set $ws10 "10:"
 
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
@@ -203,7 +192,6 @@ bindsym $mod+r mode "resize"
 # finds out, if available)
 bar {
         status_command i3status
-		tray_output eDP
 		font pango:Noto Sans Bold 11
 		colors {
         	background #000000
@@ -215,14 +203,17 @@ bar {
     }
 }
 
-for_window [instance="calibre-gui"] focus
 for_window [class="^.*"] border pixel 4
-for_window [class="xpad"] floating enable resize set 200 300
+for_window [instance="system-config-printer"] floating enable resize set 500 500
+for_window [instance="system-config-printer"] move position center
+for_window [instance="lightdm-gtk-greeter-settings"] floating enable resize set 400 400
+for_window [instance="lightdm-gtk-greeter-settings"] move position center
+for_window [class="xpad"] floating enable resize set 400 300
 for_window [class="Nm-connection-editor"] floating enable resize set 400 400
 for_window [instance="i3-scratchpad*"] border pixel 6
 for_window [instance="org.gnome.DejaDup"] floating enable resize set 500 500
 for_window [class="Nitrogen"] floating enable resize set 400 400
-for_window [instance="lxappearance"] floating enable
+for_window [instance="lxappearance"] floating enable focus
 for_window [class="gnome-calculator"] floating enable
 for_window [class="firefox" window_role="GtkFileChooserDialog"] resize set 500 500
 for_window [window_role="GtkFileChooserDialog"] move position center
@@ -230,15 +221,17 @@ for_window [instance="Places"] move position center floating enable resize set 8
 for_window [class="Font-manager"] floating enable resize set 600 600
 for_window [instance="file_progress"] move workspace "10: Transferindo..."
 for_window [instance="firefox"] focus
-
-#gaps inner 2
-#gaps outer 2
-
-# class                 border  backgr. text    indicator
-#client.focused          #4c7899 #285577 #ffffff #4c7899
-#client.focused_inactive #333333 #5f676a #ffffff #484e50
-#client.unfocused        #333333 #222222 #888888 #292d2e
-#client.urgent           #2f343a #900000 #ffffff #900000
+for_window [instance="TeamViewer"] floating enable resize set 600 600
+for_window [instance="TeamViewer"] move center
+for_window [instance="gadmin-openvpn-client"] floating enable resize set 700 700
+for_window [instance="putty"] floating enable 
+for_window [instance="gnome-system-monitor"] floating enable move position center
+for_window [instance="Firefox-esr"] floating resize set 200 200
+for_window [instance="Firefox-esr"] move position center
+for_window [instance="anydesk"] floating enable resize set 500 500
+for_window [instance="anydesk"] move position center
+gaps inner 5
+gaps outer 5
 
 # class                 border  backgr. text    indicator
 client.focused          #212121 #d5b761 #000000 #4c7899
