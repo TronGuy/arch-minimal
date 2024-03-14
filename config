@@ -3,13 +3,16 @@
 set $mod Mod4
 #Alt
 set $mod2 Mod1
-set $path1 "/dados/home/luiz/script-personal/inicio.sh"
 ############# FONT ###########
-font pango:Noto Sans Medium 10	
+font pango:Noto Sans Bold 10	
 
+# icones
+for_window [all] title_window_icon yes
+for_window [all] title_window_icon_padding 1
 
 #assign [class="firefox"] number "1: FIREFOX" 
-
+assign [class="qBittorrent"] number "9: TORRENT"
+assign [class="calibre"] number "4: LEITURA"
 # Start XDG autostart .desktop files using dex. See also
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex --autostart --environment i3
@@ -28,12 +31,9 @@ focus_follows_mouse yes
 exec --no-startup-id nitrogen --restore
 exec --no-startup-id nm-applet
 exec --no-startup-id lxpolkit
-exec --no-startup-id xcompmgr
-exec --no-startup-id dunst
-exec --no-startup-id $path1
-exec --no-startup-id teclado
 exec --no-startup-id volumeicon
-exec --no-startup-id unclutter
+exec --no-startup-id unclutter -idle 3
+exec --no-startup-id compton
 ############# KEYBINDS #################
 
 bindsym $mod2+t exec --no-startup-id nemo
@@ -43,14 +43,14 @@ bindsym $mod2+y exec --no-startup-id firefox --new-window www.youtube.com
 bindsym $mod2+p exec --no-startup-id  firefox --private-window
 bindsym $mod+x [class="^.*"] move scratchpad
 bindsym $mod2+x [class="^.*"] scratchpad show floating disable
-bindsym $mod2+l exec --no-startup-id betterlockscreen -l dim
+bindsym $mod+l exec --no-startup-id  i3lock -i '/home/samflynn/Imagens/wallp/9.png'
 bindsym $mod2+s exec --no-startup-id xfce4-screenshooter
 bindsym $mod2+f exec --no-startup-id firefox --new-window
 bindsym $mod+d exec --no-startup-id rofi -i -show drun -modi drun -show-icons -font "Monospace Bold 12"
 bindsym $mod+Return exec --no-startup-id xfce4-terminal
 bindsym $mod+BackSpace exec --no-startup-id xfce4-terminal
-bindsym $mod2+Ctrl+t exec --no-startup-id firefox --new-tab teams.microsoft.com/
-
+bindsym $mod2+Ctrl+t exec --no-startup-id xfce4-terminal
+bindsym $mod+KP_Enter exec --no-startup-id xfce4-terminal
 ########### VOLUME KEYBINDS ###########
 
 set $refresh_i3status killall -SIGUSR1 i3status
@@ -58,6 +58,13 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+
+#brilho
+bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl s +20 # increase screen brightness
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl s 20- # decrease screen brightness
+
+
+
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -74,7 +81,7 @@ bindsym $mod2+Shift+Tab focus left
 
 
 # change focus
-bindsym $mod+l focus up
+#bindsym $mod+l focus up
 bindsym $mod+ccedilla focus right
 
 # alternatively, you can use the cursor keys:
@@ -120,15 +127,21 @@ bindsym $mod+a focus parent
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
 set $ws1 "1: NAVEGAÇÃO"
-set $ws2 "2: TEAMS"
-set $ws3 "3: ARQUIVOS"
-set $ws4 "4: SSH"
+set $ws2 "2: ARQUIVOS"
+set $ws3 "3: MÍDIA"
+set $ws4 "4: LEITURA"
 set $ws5 "5: CODE"
 set $ws6 "6"
 set $ws7 "7"
 set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10:"
+
+#modo preguiçoso
+
+bindsym $mod+Tab workspace next
+
+
 
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
@@ -163,8 +176,6 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning  -m 'Deseja sair do i3? ' -B 'Si
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
-
         # Pressing left will shrink the window’s width.
         # Pressing right will grow the window’s width.
         # Pressing up will shrink the window’s height.
@@ -192,6 +203,8 @@ bindsym $mod+r mode "resize"
 # finds out, if available)
 bar {
         status_command i3status
+#		position top
+#		strip_workspace_numbers yes
 		font pango:Noto Sans Bold 11
 		colors {
         	background #000000
@@ -221,20 +234,21 @@ for_window [instance="Places"] move position center floating enable resize set 8
 for_window [class="Font-manager"] floating enable resize set 600 600
 for_window [instance="file_progress"] move workspace "10: Transferindo..."
 for_window [instance="firefox"] focus
-for_window [instance="TeamViewer"] floating enable resize set 600 600
 for_window [instance="TeamViewer"] move center
 for_window [instance="gadmin-openvpn-client"] floating enable resize set 700 700
 for_window [instance="putty"] floating enable 
 for_window [instance="gnome-system-monitor"] floating enable move position center
 for_window [instance="Firefox-esr"] floating resize set 200 200
 for_window [instance="Firefox-esr"] move position center
-for_window [instance="anydesk"] floating enable resize set 500 500
-for_window [instance="anydesk"] move position center
-gaps inner 5
-gaps outer 5
+for_window [instance="pavucontrol"] floating enable move position center
+for_window [instance="pavucontrol"] floating resize set 400 400
+
+#gaps inner 5
+#gaps outer 5
 
 # class                 border  backgr. text    indicator
 client.focused          #212121 #d5b761 #000000 #4c7899
 client.focused_inactive #333333 #5f676a #ffffff #484e50
 client.unfocused        #333333 #222222 #888888 #292d2e
 client.urgent           #2f343a #900000 #ffffff #900000
+
