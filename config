@@ -43,7 +43,7 @@ bindsym $mod2+y exec --no-startup-id firefox --new-window www.youtube.com
 bindsym $mod2+p exec --no-startup-id  firefox --private-window
 bindsym $mod+x [class="^.*"] move scratchpad
 bindsym $mod2+x [class="^.*"] scratchpad show floating disable
-bindsym $mod+l exec --no-startup-id  i3lock -i '/home/$USER/Imagens/wallp/9.png'
+bindsym $mod+l exec --no-startup-id  i3lock -i '/home/samflynn/Imagens/wallp/9.png'
 bindsym $mod2+s exec --no-startup-id xfce4-screenshooter
 bindsym $mod2+f exec --no-startup-id firefox --new-window
 bindsym $mod+d exec --no-startup-id rofi -i -show drun -modi drun -show-icons -font "Monospace Bold 12"
@@ -229,6 +229,7 @@ for_window [class="Nitrogen"] floating enable resize set 400 400
 for_window [instance="lxappearance"] floating enable focus
 for_window [class="gnome-calculator"] floating enable
 for_window [class="firefox" window_role="GtkFileChooserDialog"] resize set 500 500
+for_window [class="Qbittorrent" window_role="GtkFileChooserDialog"] resize set 700 600
 for_window [window_role="GtkFileChooserDialog"] move position center
 for_window [instance="Places"] move position center floating enable resize set 800 500
 for_window [class="Font-manager"] floating enable resize set 600 600
